@@ -1,0 +1,4 @@
+build-essential
+libboost-program-options-dev
+zlib1g-dev
+libeigen3-dev
