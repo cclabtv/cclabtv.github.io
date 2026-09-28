@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 128 128"
+    role="img"
+    aria-labelledby="title">
+
+<title id="title">Cryptocurrency Lab</title>
+
+<style>
+
+.block {
+    fill:none;
+    stroke:#9ca3af;
+    stroke-width:4;
+    stroke-linejoin:round;
+}
+
+.header {
+    stroke:#9ca3af;
+    stroke-width:2.5;
+}
+
+.trace {
+    fill:none;
+    stroke:#d1d5db;
+    stroke-width:2.5;
+    stroke-linecap:round;
+}
+
+.c {
+    fill:none;
+    stroke:#2563eb;
+    stroke-width:8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.node {
+    fill:#6b7280;
+}
+
+.nodeBlue {
+    fill:#2563eb;
+}
+
+</style>
+
+
+<!-- Blockchain block -->
+
+<rect
+    class="block"
+    x="22"
+    y="38"
+    width="84"
+    height="52"
+    rx="8"/>
+
+
+<!-- Block header -->
+
+<line
+    class="header"
+    x1="22"
+    y1="51"
+    x2="106"
+    y2="51"/>
+
+
+<!-- External network traces -->
+
+<line
+    class="trace"
+    x1="36"
+    y1="35"
+    x2="46"
+    y2="44"/>
+
+<line
+    class="trace"
+    x1="32"
+    y1="95"
+    x2="46"
+    y2="84"/>
+
+<line
+    class="trace"
+    x1="102"
+    y1="64"
+    x2="88"
+    y2="64"/>
+
+
+<!-- External nodes -->
+
+<circle class="node" cx="34" cy="34" r="4"/>
+<circle class="node" cx="34" cy="94" r="4"/>
+
+<circle class="nodeBlue" cx="104" cy="64" r="4"/>
+
+
+<!-- Custom asymmetric C -->
+
+<path
+class="c"
+d="
+M84 52
+
+C
+77 46,
+69 44,
+62 46
+
+C
+52 49,
+47 56,
+47 64
+
+C
+47 72,
+52 79,
+62 82
+
+C
+69 84,
+77 82,
+84 76
+"/>
+
+
+</svg>

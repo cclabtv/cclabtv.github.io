@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LN_CCLabTv</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <noscript>
+    <div class="noscript-message">
+      <h2>JavaScript is Disabled</h2>
+      <p>This website requires JavaScript to be enabled. Please enable JavaScript in your browser settings to use LN_CCLabTv.</p>
+      <hr style="border: none; border-top: 1px solid #e05555; margin: 1.5rem 0;">
+      <h3>Download Raw Data Directly</h3>
+      <p>You can download the raw data files directly without JavaScript:</p>
+      <ul style="text-align: left; display: inline-block; margin: 1rem 0;">
+        <li><a href="data/daily_metrics.json" download>Daily Metrics (JSON)</a></li>
+        <li><a href="data/dictionary.csv" download>Channel Dictionary (CSV)</a></li>
+      </ul>
+      <p style="font-size: 0.9rem; margin-top: 1rem;">For individual channel data, navigate to: <code>/data/channels/[channel_id].csv</code></p>
+    </div>
+  </noscript>
+
+  <header>
+    <h1>LN CCLabTv</h1>
+    <span>Cryptocurrency Laborator Tor Vergata</span>
+    <button id="theme-toggle" class="theme-toggle" title="Toggle light/dark mode">🌙</button>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-view="network-view">Network Overview</button>
+    <button class="nav-tab" data-view="channel-view">Channel Explorer</button>
+    <button class="nav-tab" data-view="node-view">Node Explorer</button>
+    <button class="nav-tab" data-view="download-view">Download Data</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════ NETWORK VIEW ══════════════════════════════════════ -->
+  <div id="network-view" class="view">
+
+    <div class="hero">
+      <h2>Network <em>Metrics</em></h2>
+      <p>Daily snapshots of Lightning Network topology and capacity.</p>
+    </div>
+
+    <div class="stats-grid" id="network-summary-cards"></div>
+
+    <div class="section">
+      <h3>Network Size</h3>
+      <div class="chart-container">
+        <canvas id="chart-nodes-edges"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Total Capacity</h3>
+      <div class="chart-container">
+        <canvas id="chart-capacity"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Connectivity</h3>
+      <div class="chart-container">
+        <canvas id="chart-connectivity"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Topology</h3>
+      <div class="chart-container">
+        <canvas id="chart-topology"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ CHANNEL VIEW ══════════════════════════════════════ -->
+  <div id="channel-view" class="view hidden">
+
+    <div class="hero">
+      <h2>Channel <em>History Explorer</em></h2>
+      <p>Enter a channel ID to explore its gossip update history.</p>
+    </div>
+
+    <div class="search-section">
+      <form id="search-form">
+        <input
+          type="text"
+          id="channel-input"
+          placeholder="Enter channel ID (e.g. 565467835083587584)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit">Search</button>
+      </form>
+      <div id="error-msg" class="error-msg hidden">Channel not found.</div>
+    </div>
+
+    <div id="results" class="hidden">
+
+      <div id="channel-meta" class="channel-brief hidden">
+        <div class="brief-header">
+          <h2>Channel <span id="channel-id-label"></span></h2>
+        </div>
+        <div class="brief-grid">
+          <div class="brief-item">
+            <div class="brief-label">Capacity</div>
+            <div class="brief-value" id="meta-capacity">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Node 1</div>
+            <div class="brief-value mono" id="meta-node1">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Node 2</div>
+            <div class="brief-value mono" id="meta-node2">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Created</div>
+            <div class="brief-value" id="meta-created">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Status</div>
+            <div class="brief-value" id="meta-closed">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Channel Details</h3>
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <div class="metadata-label">Channel ID</div>
+            <div class="metadata-value mono" id="detail-channel-id">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Short ID</div>
+            <div class="metadata-value mono" id="detail-short-id">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Funding Txid</div>
+            <div class="metadata-value mono" id="detail-funding-txid">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Funding Output Index</div>
+            <div class="metadata-value" id="detail-funding-index">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Node 1 Pubkey</div>
+            <div class="metadata-value mono" id="detail-node1-pub">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Node 2 Pubkey</div>
+            <div class="metadata-value mono" id="detail-node2-pub">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Capacity (sats)</div>
+            <div class="metadata-value" id="detail-capacity">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Created Timestamp</div>
+            <div class="metadata-value" id="detail-created-ts">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Created Height</div>
+            <div class="metadata-value" id="detail-created-height">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Closing Timestamp</div>
+            <div class="metadata-value" id="detail-closing-ts">—</div>
+          </div>
+          <div class="metadata-item">
+            <div class="metadata-label">Closing Height</div>
+            <div class="metadata-value" id="detail-closing-height">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Overview</h3>
+        <div class="stats-grid" id="summary-cards">
+          <div class="stat-card">
+            <div class="value" id="stat-updates">—</div>
+            <div class="label">Total Updates</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="stat-disabled">—</div>
+            <div class="label">Disabled Updates</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nodes-container">
+        <div class="node-section">
+          <h3>Node 1 Policy</h3>
+          <div class="node-state-card">
+            <div class="state-item">
+              <div class="state-label">State</div>
+              <div class="state-value" id="stat-node1-state">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Timestamp</div>
+              <div class="state-value" id="stat-node1-timestamp">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Date</div>
+              <div class="state-value" id="stat-node1-date">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Fee Base (msat)</div>
+              <div class="state-value" id="stat-node1-fee-base">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Fee Rate (ppm)</div>
+              <div class="state-value" id="stat-node1-fee-rate">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Min HTLC</div>
+              <div class="state-value" id="stat-node1-min-htlc">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Max HTLC (msat)</div>
+              <div class="state-value" id="stat-node1-max-htlc">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">CLTV Delta</div>
+              <div class="state-value" id="stat-node1-cltv">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Disabled</div>
+              <div class="state-value" id="stat-node1-disabled">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="node-section">
+          <h3>Node 2 Policy</h3>
+          <div class="node-state-card">
+            <div class="state-item">
+              <div class="state-label">State</div>
+              <div class="state-value" id="stat-node2-state">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Timestamp</div>
+              <div class="state-value" id="stat-node2-timestamp">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Date</div>
+              <div class="state-value" id="stat-node2-date">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Fee Base (msat)</div>
+              <div class="state-value" id="stat-node2-fee-base">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Fee Rate (ppm)</div>
+              <div class="state-value" id="stat-node2-fee-rate">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Min HTLC</div>
+              <div class="state-value" id="stat-node2-min-htlc">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Max HTLC (msat)</div>
+              <div class="state-value" id="stat-node2-max-htlc">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">CLTV Delta</div>
+              <div class="state-value" id="stat-node2-cltv">—</div>
+            </div>
+            <div class="state-item">
+              <div class="state-label">Disabled</div>
+              <div class="state-value" id="stat-node2-disabled">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Fee Base (msat)</h3>
+        <p class="chart-note">Red shaded areas = disabled periods</p>
+        <div class="chart-container">
+          <canvas id="chart-channel-fee-base"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Fee Rate (ppm)</h3>
+        <div class="chart-container">
+          <canvas id="chart-channel-fee-rate"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Min HTLC</h3>
+        <div class="chart-container">
+          <canvas id="chart-channel-min-htlc"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Max HTLC (msat)</h3>
+        <div class="chart-container">
+          <canvas id="chart-channel-max-htlc"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>CLTV Delta</h3>
+        <div class="chart-container">
+          <canvas id="chart-channel-cltv"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Update History</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Recording Time</th>
+                <th>Last Update (Timestamp)</th>
+                <th>Last Update (UTC)</th>
+                <th>Time Lock Delta</th>
+                <th>Min HTLC</th>
+                <th>Max HTLC (msat)</th>
+                <th>Fee Base (msat)</th>
+                <th>Fee Rate (ppm)</th>
+                <th>Disabled</th>
+                <th>Advertiser</th>
+              </tr>
+            </thead>
+            <tbody id="updates-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ NODE VIEW ══════════════════════════════════════ -->
+  <div id="node-view" class="view hidden">
+
+    <div class="hero">
+      <h2>Node <em>Explorer</em></h2>
+      <p>Enter a node public key to explore its details, addresses, channels, and features.</p>
+    </div>
+
+    <div class="search-section">
+      <form id="node-search-form">
+        <input
+          type="text"
+          id="node-input"
+          placeholder="Enter node public key (e.g. 02000...)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit">Search</button>
+      </form>
+      <div id="node-error-msg" class="error-msg hidden">Node not found.</div>
+    </div>
+
+    <div id="node-results" class="hidden">
+
+      <div id="node-meta" class="node-meta hidden">
+        <div class="brief-header">
+          <h2>Node <span id="node-pubkey-header"></span></h2>
+        </div>
+        <div class="brief-grid">
+          <div class="brief-item">
+            <div class="brief-label">Alias</div>
+            <div class="brief-value" id="node-alias">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Color</div>
+            <div class="brief-value" id="node-color">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Last Updated</div>
+            <div class="brief-value" id="node-last-update">—</div>
+          </div>
+          <div class="brief-item">
+            <div class="brief-label">Public Key</div>
+            <div class="brief-value mono" id="node-pubkey">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Overview</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="value" id="node-stat-addresses">—</div>
+            <div class="label">Addresses</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="node-stat-channels">—</div>
+            <div class="label">Channels</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="node-stat-features">—</div>
+            <div class="label">Features</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Addresses</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Recording Time</th>
+                <th>Last Update</th>
+                <th>Network</th>
+                <th>Address</th>
+                <th>Is Snapshot</th>
+              </tr>
+            </thead>
+            <tbody id="node-addresses-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Channels</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Channel ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="node-channels-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Related Nodes</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Public Key</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="node-related-nodes-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Features</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Recording Time</th>
+                <th>Feature Code</th>
+                <th>Feature Name</th>
+                <th>Is Known</th>
+                <th>Is Required</th>
+              </tr>
+            </thead>
+            <tbody id="node-features-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════ DOWNLOAD VIEW ══════════════════════════════════════ -->
+  <div id="download-view" class="view hidden">
+
+    <div class="hero">
+      <h2>Download <em>Raw Data</em></h2>
+      <p>Export Lightning Network data for analysis and research.</p>
+    </div>
+
+    <div class="section">
+      <h3>Available Datasets</h3>
+      <div class="download-grid">
+        <div class="download-card">
+          <div class="download-title">Daily Metrics</div>
+          <div class="download-desc">Network topology and capacity snapshots (JSON)</div>
+          <div class="download-size" id="size-daily-metrics">—</div>
+          <button class="download-btn" onclick="downloadFile('data/daily_metrics.json', 'daily_metrics.json')">Download</button>
+        </div>
+
+        <div class="download-card">
+          <div class="download-title">Channels Dictionary</div>
+          <div class="download-desc">Complete channel metadata and node information (CSV)</div>
+          <div class="download-size" id="size-channels">—</div>
+          <button class="download-btn" onclick="downloadFile('data/channels.csv', 'channels.csv')">Download</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Download Individual Channel</h3>
+      <form id="download-channel-form">
+        <input
+          type="text"
+          id="download-channel-input"
+          placeholder="Enter channel ID (e.g. 565467835083587584)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit">Download Channel Data</button>
+      </form>
+      <div id="download-error" class="error-msg hidden">—</div>
+    </div>
+
+    <div class="section">
+      <h3>Download Individual Node</h3>
+      <form id="download-node-form">
+        <input
+          type="text"
+          id="download-node-input"
+          placeholder="Enter node public key (e.g. 02000...)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit">Download Node Data</button>
+      </form>
+      <div id="download-node-error" class="error-msg hidden">—</div>
+    </div>
+
+  </div>
+
+  <footer>
+    Data collected for research purposes &mdash;
+    <a href="DATA_SOURCES.md" target="_blank">Data Sources</a> &mdash;
+    <a href="https://github.com/" target="_blank">GitHub</a>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
